@@ -1,31 +1,52 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-        <title>hello phaser!</title>
+        <title>Loading Assets</title>
         <script src="../phaser.min.js"></script>
+        <style>
+            body,html {
+                margin: 0px;
+            }
+        </style>
     </head>
     <body>
 
     <script type="text/javascript">
     window.onload = function() {
         //This initializes Phaser
-        var WINDOW_WIDTH =800;
-        var WINDOW_HEIGHT = 600;
+        var WINDOW_WIDTH = '100';
+        var WINDOW_HEIGHT = '100';
         var game = new Phaser.Game(WINDOW_WIDTH, WINDOW_HEIGHT, Phaser.AUTO, '', { preload: preload, create: create,update:GameLoop });
         var counter = 0;
         var logo;
         function preload () {
             //Here is where you would load all your images and assets
             game.load.image('logo', 'logo.png');//We bind the M3mal logo to the name "logo"
+            game.load.audio('bell','Church bell.wav')
         }
         function create () {
             //This function runs on creation of the game window
+            
+
+            //Randomly create 100 objects
+            var objArray = []
+            for(var i=0;i<100;i++){
+                var randomX = Math.random() * game.world.centerX *2
+                var randomY = Math.random() * game.world.centerY *2
+                var obj =  game.add.sprite(randomX, randomY, 'logo');
+                obj.anchor.setTo(0.5,0.5);
+                objArray.push(obj);
+            }
+
             logo = game.add.sprite(game.world.centerX, game.world.centerY, 'logo');//We add "logo"
+
             logo.anchor.setTo(0.5, 0.5);//This means the center of the sprite is its center, rather than its top left
+            var bellSound = game.add.audio("bell")
+            bellSound.play()
         }
         function GameLoop(){
             counter += 0.05;
-            logo.y = WINDOW_HEIGHT/2 + Math.sin(counter) * 100;
+            logo.y = game.world.centerY + Math.sin(counter) * 100;
         }
     };
     </script>

@@ -3,14 +3,19 @@
         <meta charset="UTF-8" />
         <title>hello phaser!</title>
         <script src="../phaser.min.js"></script>
+        <style>
+            body,html {
+                margin: 0px;
+            }
+        </style>
     </head>
     <body>
 
     <script type="text/javascript">
     window.onload = function() {
         //This initializes Phaser
-        var WINDOW_WIDTH =800;
-        var WINDOW_HEIGHT = 600;
+        var WINDOW_WIDTH = '100';
+        var WINDOW_HEIGHT = '100';
         var game = new Phaser.Game(WINDOW_WIDTH, WINDOW_HEIGHT, Phaser.AUTO, '', { preload: preload, create: create,update:GameLoop });
         var counter = 0;
         var logo;
@@ -25,7 +30,7 @@
         }
         function GameLoop(){
             counter += 0.05;
-            logo.y = WINDOW_HEIGHT/2 + Math.sin(counter) * 100;
+            logo.y = game.world.centerY + Math.sin(counter) * 100;
         }
     };
     </script>
