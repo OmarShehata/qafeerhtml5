@@ -1,0 +1,49 @@
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Animation</title>
+        <script src="../phaser.min.js"></script>
+        <style>
+            body,html {
+                margin: 0px;
+            }
+        </style>
+    </head>
+    <body>
+
+    <script type="text/javascript">
+    window.onload = function() {
+        //This initializes Phaser
+        var WINDOW_WIDTH = '100';
+        var WINDOW_HEIGHT = '100';
+        var game = new Phaser.Game(WINDOW_WIDTH, WINDOW_HEIGHT, Phaser.AUTO, '', { preload: preload, create: create,update:GameLoop });
+        var mummy;
+        var anim;
+
+        function preload () {
+            //We load the sprite sheet
+            game.load.spritesheet('mummy', 'metalslug_mummy37x45.png', 37, 45, 18);//the width and height of a single frame is 37x45
+            //And there are 18 frames
+        }
+        function create () {
+            //Add the mummy object
+            mummy = game.add.sprite(200, 360, 'mummy');
+            //We create the animation object
+            anim = mummy.animations.add('walk');
+            //We tell it to play at 10 frames per second, and loop
+            anim.play(10,true)
+
+            //Make it a little bigger
+            mummy.scale.x = 4;
+            mummy.scale.y = 4;
+            mummy.smoothed = false;//Disable antialias so it doesn't look blurry
+        }
+        function GameLoop(){
+           
+
+        }
+    };
+    </script>
+
+    </body>
+</html>
