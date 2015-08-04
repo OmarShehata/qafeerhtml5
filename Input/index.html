@@ -1,0 +1,59 @@
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Input</title>
+        <script src="../phaser.min.js"></script>
+        <style>
+            body,html {
+                margin: 0px;
+            }
+        </style>
+    </head>
+    <body>
+
+    <script type="text/javascript">
+    window.onload = function() {
+        //This initializes Phaser
+        var WINDOW_WIDTH = '100';
+        var WINDOW_HEIGHT = '100';
+        var game = new Phaser.Game(WINDOW_WIDTH, WINDOW_HEIGHT, Phaser.AUTO, '', { preload: preload, create: create,update:GameLoop });
+        var counter = 0;
+        var logo;
+        function preload () {
+            //Here is where you would load all your images and assets
+            game.load.image('logo', 'logo.png');//We bind the M3mal logo to the name "logo"
+        }
+        function create () {
+            //This function runs on creation of the game window
+            logo = game.add.sprite(game.world.centerX, game.world.centerY, 'logo');//We add "logo"
+            logo.anchor.setTo(0.5, 0.5);//This means the center of the sprite is its center, rather than its top left
+        }
+        function GameLoop(){
+            //Point towards the mouse
+            var dx = game.input.mousePointer.x - logo.x;//Get the distances
+            var dy = game.input.mousePointer.y - logo.y; 
+            //Use a little trignometry to calculate the angle
+            var angle = Math.atan2(dy,dx);
+            logo.rotation = angle;
+
+            //Move with keyboard
+            if(game.input.keyboard.isDown(Phaser.Keyboard.A) || game.input.keyboard.isDown(Phaser.Keyboard.LEFT)){
+                logo.x -= 5;
+            }
+            if(game.input.keyboard.isDown(Phaser.Keyboard.D) || game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)){
+                logo.x += 5;
+            }
+            if(game.input.keyboard.isDown(Phaser.Keyboard.S) || game.input.keyboard.isDown(Phaser.Keyboard.DOWN)){
+                logo.y += 5;
+            }
+            if(game.input.keyboard.isDown(Phaser.Keyboard.W) || game.input.keyboard.isDown(Phaser.Keyboard.UP)){
+                logo.y -= 5;
+            }
+
+
+        }
+    };
+    </script>
+
+    </body>
+</html>
