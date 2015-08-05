@@ -1,0 +1,78 @@
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>State System</title>
+        <script src="../phaser.min.js"></script>
+        <style>
+            body,html {
+                margin: 0px;
+            }
+        </style>
+    </head>
+    <body>
+
+    <script type="text/javascript">
+    window.onload = function() {
+        //This initializes Phaser
+        var WINDOW_WIDTH = '100';
+        var WINDOW_HEIGHT = '100';
+        var game = new Phaser.Game(WINDOW_WIDTH, WINDOW_HEIGHT, Phaser.AUTO, '', { preload: preload, create: create,update:GameLoop,shutdown:shutdown });
+
+        var objectArray = [];
+
+        function preload () {
+            //Here is where you would load all your images and assets
+            game.load.image('logo', 'logo.png');//We bind the M3mal logo to the name "logo"
+        }
+
+        function create () {
+            //Create one hundred objects
+            for(var i=0;i<100;i++){
+                var width = game.world.width;
+                var height = game.world.height;
+                var logo = game.add.sprite(Math.random() * width,Math.random() * height, 'logo');//We add "logo"
+                logo.anchor.setTo(0.5, 0.5);
+                objectArray.push(logo)
+                logo.counter = Math.random() * Math.PI * 2;
+                logo.originalY = logo.y;
+            }
+
+            //Start level two on mouse click
+            game.input.mouse.mouseUpCallback = function(){ game.state.start('LevelTwo') }
+        }
+        function GameLoop(){
+             for(var i=0;i<objectArray.length;i++){
+                objectArray[i].y = objectArray[i].originalY + Math.cos(objectArray[i].counter) * 100;
+                objectArray[i].counter += 0.01;
+            }
+        }
+        function shutdown(){
+            for(var i=0;i<objectArray.length;i++){
+                objectArray[i].destroy()
+            }
+            objectArray = []
+        }
+
+        var LevelTwo = {
+            //Let's pretend this is the second level of the game
+            create: function(){
+                var logo = game.add.sprite(game.world.centerX,game.world.centerY, 'logo');
+                objectArray.push(logo)
+                game.input.mouse.mouseUpCallback = function(){ game.state.start('default') } //Go back to default on mouse click
+            },
+            update:function(){
+
+            },
+            shutdown:function(){
+                for(var i=0;i<objectArray.length;i++){
+                    objectArray[i].destroy()
+                }
+                objectArray = []
+            }
+        }
+        game.state.add("LevelTwo",LevelTwo)
+    };
+    </script>
+
+    </body>
+</html>

@@ -1,0 +1,56 @@
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Tweens</title>
+        <script src="../phaser.min.js"></script>
+        <style>
+            body,html {
+                margin: 0px;
+            }
+        </style>
+    </head>
+    <body>
+
+    <script type="text/javascript">
+    window.onload = function() {
+        //This initializes Phaser
+        var WINDOW_WIDTH = '100';
+        var WINDOW_HEIGHT = '100';
+        var game = new Phaser.Game(WINDOW_WIDTH, WINDOW_HEIGHT, Phaser.AUTO, '', { preload: preload, create: create,update:GameLoop });
+
+        var logo;
+        var tween;
+        var easingMode = Phaser.Easing.Elastic.InOut;
+        //Try commenting some of these out
+        //easingMode = Phaser.Easing.Circular.InOut;
+        //easingMode = Phaser.Easing.Quadratic.InOut;
+
+        //This one is just the standard linear
+        //easingMode = Phaser.Easing.Linear.InOut;
+
+        function preload () {
+            //Here is where you would load all your images and assets
+            game.load.image('logo', 'logo.png');//We bind the M3mal logo to the name "logo"
+        }
+        function create () {
+            //This function runs on creation of the game window
+            logo = game.add.sprite(game.world.centerX, game.world.centerY, 'logo');//We add "logo"
+            logo.anchor.setTo(0.5, 0.5);//This means the center of the sprite is its center, rather than its top left
+
+            //Create our tween
+            tween = game.add.tween(logo).to({y:game.world.height-100},5000,easingMode,true);
+
+            game.input.mouse.onMouseDown = function(){
+                //Recreate movement on click
+                logo.y = game.world.centerY;
+                tween = game.add.tween(logo).to({y:game.world.height-100},5000,easingMode,true);
+            }
+        }
+        function GameLoop(){
+            
+        }
+    };
+    </script>
+
+    </body>
+</html>
