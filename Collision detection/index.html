@@ -1,0 +1,53 @@
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Collision Detection</title>
+        <script src="../phaser.min.js"></script>
+        <style>
+            body,html {
+                margin: 0px;
+            }
+        </style>
+    </head>
+    <body>
+
+    <script type="text/javascript">
+    window.onload = function() {
+        //This initializes Phaser
+        var WINDOW_WIDTH = '100';
+        var WINDOW_HEIGHT = '100';
+        var game = new Phaser.Game(WINDOW_WIDTH, WINDOW_HEIGHT, Phaser.AUTO, '', { preload: preload, create: create,update:GameLoop });
+
+        var logo;
+        var logo2;
+
+        function preload () {
+            //Here is where you would load all your images and assets
+            game.load.image('logo', 'logo.png');//We bind the M3mal logo to the name "logo"
+        }
+        function create () {
+            //This function runs on creation of the game window
+            logo = game.add.sprite(game.world.centerX, game.world.centerY, 'logo');//We add "logo"
+            logo.anchor.setTo(0.5, 0.5);//This means the center of the sprite is its center, rather than its top left
+
+            logo2 = game.add.sprite(game.world.centerX, game.world.centerY, 'logo');//We add "logo"
+            logo2.anchor.setTo(0.5, 0.5);//This means the center of the sprite is its center, rather than its top left
+        }
+        function GameLoop(){
+            logo.x = game.input.mousePointer.x;
+            logo.y = game.input.mousePointer.y;
+
+            var boundsA = logo.getBounds();
+            var boundsB = logo2.getBounds();
+            if(Phaser.Rectangle.intersects(boundsA,boundsB)){
+                logo.alpha = 0.3;
+            } else {
+                logo.alpha = 1;
+            }
+
+        }
+    };
+    </script>
+
+    </body>
+</html>
