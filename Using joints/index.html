@@ -1,0 +1,59 @@
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Physics - Constraints</title>
+        <script src="../phaser.min.js"></script>
+        <style>
+            body,html {
+                margin: 0px;
+            }
+        </style>
+    </head>
+    <body>
+
+    <script type="text/javascript">
+    window.onload = function() {
+        //This initializes Phaser
+        var WINDOW_WIDTH = '100';
+        var WINDOW_HEIGHT = '100';
+        var game = new Phaser.Game(WINDOW_WIDTH, WINDOW_HEIGHT, Phaser.AUTO, '', { preload: preload, create: create,update:GameLoop });
+        
+        var blockArray = [];
+
+
+        function CreateBlock(x,y){
+            //Create a block
+            var block = game.add.sprite(x,y,'block');
+            //Enable physics on it
+            game.physics.p2.enable(block)
+
+            blockArray.push(block)
+        }
+
+        function preload () {
+            game.load.image('block', 'block.png');
+        }
+        function create () {
+            //Enable p2 physics
+            game.physics.startSystem(Phaser.Physics.P2JS);
+            //Set the gravity
+            game.physics.p2.gravity.y = 1000;
+
+            //Create two blocks
+            CreateBlock(game.world.centerX,game.world.centerY);
+            CreateBlock(game.world.centerX + 20,game.world.centerY +250)
+
+            //Create a distance constraint between them
+            game.physics.p2.createDistanceConstraint(blockArray[0],blockArray[1],200);
+
+        }
+        function GameLoop(){
+            
+        }
+
+
+    };
+    </script>
+
+    </body>
+</html>

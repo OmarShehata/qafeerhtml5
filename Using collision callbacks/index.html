@@ -1,0 +1,54 @@
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Physics - Contact</title>
+        <script src="../phaser.min.js"></script>
+        <style>
+            body,html {
+                margin: 0px;
+            }
+        </style>
+    </head>
+    <body>
+
+    <script type="text/javascript">
+    window.onload = function() {
+        //This initializes Phaser
+        var WINDOW_WIDTH = '100';
+        var WINDOW_HEIGHT = '100';
+        var game = new Phaser.Game(WINDOW_WIDTH, WINDOW_HEIGHT, Phaser.AUTO, '', { preload: preload, create: create,update:GameLoop });
+        
+        var block;
+
+        function preload () {
+            game.load.image('block', 'block.png');
+        }
+        function create () {
+            //Enable p2 physics
+            game.physics.startSystem(Phaser.Physics.P2JS);
+            //Set the gravity
+            game.physics.p2.gravity.y = 1000;
+
+            //Create a block
+            block = game.add.sprite(game.world.centerX,game.world.centerY,'block');
+
+            //Enable physics on it
+            game.physics.p2.enable(block)
+
+            //Set the contact callback
+            block.body.onBeginContact.add(blockHit,this);
+        }
+        function blockHit(bodyA, bodyB, shapeA, shapeB, equation) {
+            //This will get triggered every time block is touched. In this case it only touches the floor as it falls
+            console.log("Hit!")
+            console.log(bodyA, bodyB, shapeA, shapeB, equation)
+        }
+        function GameLoop(){
+            
+        }
+
+    };
+    </script>
+
+    </body>
+</html>
