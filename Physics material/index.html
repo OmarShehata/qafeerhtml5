@@ -1,0 +1,78 @@
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Physics - Material</title>
+        <script src="../phaser.min.js"></script>
+        <style>
+            body,html {
+                margin: 0px;
+            }
+        </style>
+    </head>
+    <body>
+
+    <script type="text/javascript">
+    window.onload = function() {
+        //This initializes Phaser
+        var WINDOW_WIDTH = '100';
+        var WINDOW_HEIGHT = '100';
+        var game = new Phaser.Game(WINDOW_WIDTH, WINDOW_HEIGHT, Phaser.AUTO, '', { preload: preload, create: create,update:GameLoop });
+        
+        var blockArray = [];
+
+        var blockMaterial;//This will be our blocks
+        var worldMaterial;//This will be our bounds
+
+        function CreateBlock(x,y){
+            //Create a block
+            var block = game.add.sprite(x,y,'block');
+            //Enable physics on it
+            game.physics.p2.enable(block)
+            //To enable debug draw, set the second argument of enable() to true, like so:
+            //game.physics.p2.enable(block,true)
+
+            block.body.setCircle(45)//This will create circles instead of blocks
+
+            //Set the material
+            block.body.setMaterial(blockMaterial)
+
+            //block.body.collideWorldBounds = false; //This makes this body ignore the world boundaries
+
+            blockArray.push(block)
+        }
+
+        function preload () {
+            game.load.image('block', 'block.png');
+        }
+        function create () {
+            //Enable p2 physics
+            game.physics.startSystem(Phaser.Physics.P2JS);
+            //Set the gravity
+            game.physics.p2.gravity.y = 1000;
+
+            //Create our materials
+            blockMaterial = game.physics.p2.createMaterial('block');
+            worldMaterial = game.physics.p2.createMaterial('world');
+
+            //Set the world material
+            game.physics.p2.setWorldMaterial(worldMaterial, true, true, true, true);
+
+            //Set our contact properties
+            var contactMaterial = game.physics.p2.createContactMaterial(blockMaterial,worldMaterial);
+            contactMaterial.restitution = 1.0;
+
+            game.input.mouse.mouseUpCallback = function(){
+                CreateBlock(game.input.mousePointer.x,game.input.mousePointer.y)
+            }
+
+        }
+        function GameLoop(){
+            
+        }
+
+
+    };
+    </script>
+
+    </body>
+</html>

@@ -27,6 +27,9 @@
             //This function runs on creation of the game window
             logo = game.add.sprite(game.world.centerX, game.world.centerY, 'logo');//We add "logo"
             logo.anchor.setTo(0.5, 0.5);//This means the center of the sprite is its center, rather than its top left
+
+            //How to create a mouse callback
+            game.input.mouse.mouseUpCallback = function(){ console.log("Mouse clicked!") }
         }
         function GameLoop(){
             //Point towards the mouse

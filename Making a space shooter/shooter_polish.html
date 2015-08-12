@@ -1,0 +1,258 @@
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Shooter Lifesystem</title>
+        <script src="../phaser.min.js"></script>
+    </head>
+    <body style='margin:0px'>
+
+    <script type="text/javascript">
+    window.onload = function() {
+        //Polish Added:
+        //  -Smoother movement
+        //  -Screenshake
+        //  -Faster bullets
+        //  -Rate of fire
+        //  -Enemy health & hit animation
+
+
+        //This initializes Phaser
+        var WINDOW_WIDTH ='100';//When it's a string, it acts as a percentage
+        var WINDOW_HEIGHT = '100';
+
+        var game = new Phaser.Game(WINDOW_WIDTH, WINDOW_HEIGHT, Phaser.AUTO, '', { preload: preload, create: create,update:GameLoop ,shutdown:shutdown});
+        
+        var player;
+        var bulletArray = []
+        var enemiesArray = []
+        var bulletArray = []
+        var spawnCounter = 0;//A counter to spawn an enemy every few seconds
+        var HUD = {};
+        var lives = 3;
+        var GameOverState;//Defined below
+
+        var quakePower = 0;//No game is complete without a screenshake effect!
+
+        function preload () {
+            //Load all of our assets
+            game.load.image('player', 'Assets/images/player.png');
+            game.load.image('enemy','Assets/images/enemyShip.png');
+            game.load.image('enemy_hit','Assets/images/enemyShip_hit.png');//The hit frame
+            game.load.image('bullet','Assets/images/laserGreen.png');
+        }
+        function shutdown(){
+            //Clean everything we did
+            player.destroy()
+            HUD.lifeText.destroy()
+            for(var i = 0;i<bulletArray.length;i++){
+                var bullet = bulletArray[i];
+                bullet.destroy()
+            }
+            for(var i = 0;i<enemiesArray.length;i++){
+               var enemy = enemiesArray[i];
+               enemy.destroy(); enemy.hitFrame.destroy()
+           }
+           bulletArray = []
+           enemiesArray = []
+        }
+
+        function createPlayer(){
+            player = game.add.sprite(game.world.centerX, game.world.centerY, 'player');
+            player.anchor.setTo(0.5, 0.5);//This means the center of the sprite is its center, rather than its top left
+
+            //Initialize some values inside the player object
+            player.speed = 1;
+            player.speedX = 0;
+            player.speedY = 0;
+            player.friction = 0.9;
+            player.fireRate = 5;//how many frames between each shot
+            player.fireCounter = 0;
+        }
+        function createHUD(){
+            //HUD stands for "Heads Up Display"
+
+            //Create a group
+            var style = { font: "55px Arial", fill: "#ffffff", align: "left" };
+            HUD.lifeText = game.add.text(20, 20, "Lives: 3", style);
+            HUD.lifeText.z = 1000;
+        }
+        function addBullet(x,y,angle){
+            var bullet = game.add.sprite(x,y, 'bullet');
+            bullet.anchor.setTo(0.5,0.5);
+            bullet.rotation = angle- (90 * Math.PI/180); 
+            bullet.cosine = Math.cos(angle)
+            bullet.sine = Math.sin(angle)
+            bullet.speed = 40;
+            bulletArray.push(bullet)
+        }
+        function addEnemy(){
+            //Randomly spawn an enemy somewhere outside the screen
+            var x = game.world._width/2;
+            var y = game.world._height/2;
+            var angle = Math.random() * 2 * Math.PI;//They spawn in a circle outside the screen, at a random point on that circle
+            x += Math.cos(angle) * game.world._width;
+            y += Math.sin(angle) * game.world._height;
+            var enemy = game.add.sprite(x,y, 'enemy');
+            enemy.anchor.setTo(0.5,0.5);
+            enemy.speed = 2;
+            enemiesArray.push(enemy)
+            enemy.health = 10;
+            enemy.hitFrame = game.add.sprite(x,y,'enemy_hit');enemy.hitFrame.anchor.setTo(0.5,0.5);
+        }
+
+        function create () {
+            createHUD();
+           createPlayer();
+            //Frees the camera so we can move it manually
+            game.camera.bounds = null;
+        }
+        function GameLoop(){
+            //Activate sorting
+            game.world.sort('z')
+
+            //Allow player movement with Arrow keys or WASD
+            if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT) || game.input.keyboard.isDown(Phaser.Keyboard.A)){
+                player.speedX -= player.speed;
+            }
+            if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT) || game.input.keyboard.isDown(Phaser.Keyboard.D)){
+                player.speedX += player.speed;
+            }
+            if (game.input.keyboard.isDown(Phaser.Keyboard.UP) || game.input.keyboard.isDown(Phaser.Keyboard.W)){
+                player.speedY -= player.speed;
+            }
+            if (game.input.keyboard.isDown(Phaser.Keyboard.DOWN) || game.input.keyboard.isDown(Phaser.Keyboard.S)){
+                player.speedY += player.speed;
+            }
+            //Much smoother movement!
+            player.x += player.speedX;
+            player.y += player.speedY;
+            player.speedX *= player.friction;//The higher the friction value, the more slippery it is!
+            player.speedY *= player.friction;
+
+            //Make player point to mouse
+            var dx = game.input.mousePointer.x - player.x;
+            var dy = game.input.mousePointer.y - player.y;//Calculate distance from mouse 
+            var angle = Math.atan2(dy,dx)//Calculate angle to mouse
+            //Look at this fancy trignometry! I guess maths is useful after all!
+            player.rotation = angle + (90 * Math.PI/180) ;
+
+            //Shoot on mouse click!
+            if(game.input.activePointer.isDown && player.fireCounter <= 0){
+                addBullet(player.x,player.y,angle);
+                player.fireCounter = player.fireRate;
+            }
+            if(player.fireCounter > 0) player.fireCounter --;
+            ///Update bullets
+            for(var i = 0;i<bulletArray.length;i++){
+                var bullet = bulletArray[i];
+                //Move the bullet by its rotation
+                bullet.x += bullet.cosine * bullet.speed;//We're saving the cosine and sine values, since the angle doesn't change, so we don't have to calculate them every frame for every bullet
+                bullet.y += bullet.sine * bullet.speed; 
+
+                //TODO: We should be removing the bullets when they exit the screen!
+
+                 //Remove the bullet if it collides with an enemy
+                for(var j = 0;j<enemiesArray.length;j++){//For every bullet, loop over every enemy
+                    var enemy = enemiesArray[j];
+                    //WE detect collision simply by checking if the distance between the enemy and the bullet is small enough
+                    var dx = enemy.x - bullet.x; 
+                    var dy = enemy.y - bullet.y;
+                    var distance = Math.sqrt(dx * dx + dy * dy);
+                    if(distance < enemy.width/2){
+                        //Destroy and remove from array
+                        bullet.destroy();
+                        bulletArray.splice(i,1);
+                        //Decrease enemy health
+                        enemy.health --;
+                        if(enemy.health <= 0){
+                            //Destroy the enemy if health is out
+                            enemy.destroy(); enemy.hitFrame.destroy()
+                            enemiesArray.splice(j,1)
+                        } else {
+                            //Otherwise just play hit animation
+                            enemy.hitFrame.alpha = 1;
+                        }
+                        quakePower = 5;//Screenshake! A little more subtle for the enemies
+                    }
+                }
+            }
+
+
+            //Spawn an enemy every second
+            spawnCounter ++
+            if(spawnCounter > 60 ){
+                spawnCounter = 0;
+                addEnemy();
+            }
+
+            //Update enemies
+            for(var i = 0;i<enemiesArray.length;i++){
+               var enemy = enemiesArray[i];
+               //Make them seek out and follow the player
+               var dx = player.x - enemy.x;
+               var dy = player.y - enemy.y;
+               var angle = Math.atan2(dy,dx);
+               enemy.rotation = angle - (90 * Math.PI/180) ;
+               enemy.x += Math.cos(angle) * enemy.speed;
+               enemy.y += Math.sin(angle) * enemy.speed;
+
+                //Update hitframe
+                enemy.hitFrame.x = enemy.x; 
+                enemy.hitFrame.y = enemy.y;
+                enemy.hitFrame.rotation = enemy.rotation;
+                if(enemy.hitFrame.alpha > 0){
+                    enemy.hitFrame.alpha -=0.09;
+                }
+
+               //If the enemy hits the player, remove enemy
+               var distance = Math.sqrt(dx * dx + dy * dy);
+               if(distance < player.width){
+                 enemy.destroy(); enemy.hitFrame.destroy()
+                enemiesArray.splice(i,1)
+                quakePower = 20;//Screenshake!
+                lives--;
+               }
+            }
+
+            //Update HUD
+            HUD.lifeText.setText("Lives: " + String(lives))
+
+            if(lives <= 0){
+                game.state.start("GameOver")
+            }
+
+             //Screenshake effect
+            if(quakePower > 0){
+                game.camera.x = Math.random() * quakePower;
+                game.camera.y = Math.random() * quakePower;
+                quakePower *= 0.9;
+                if(quakePower < 1) quakePower = 0;
+            }
+
+        }
+
+
+
+        //Game over state
+        GameOverState = {
+            create: function(){
+                var style = { font: "75px Arial", fill: "#ffffff", align: "center" };
+                var gameOverText = game.add.text(game.world.centerX, game.world.centerY, "Game Over", style);
+                gameOverText.x -= gameOverText.width/2;
+                gameOverText.y -= gameOverText.height/2;
+                //Restart on mouse click
+                game.input.mouse.mouseUpCallback = function(){
+                    game.state.start('default')
+                    lives = 3;
+                }
+            },
+            shutdown: function(){
+                 game.input.mouse.mouseUpCallback = function(){}
+            }
+        }
+        game.state.add("GameOver",GameOverState)
+    };
+    </script>
+ 
+    </body>
+</html>

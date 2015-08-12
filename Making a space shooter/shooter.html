@@ -1,0 +1,209 @@
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Shooter Lifesystem</title>
+        <script src="../phaser.min.js"></script>
+    </head>
+    <body style='margin:0px'>
+
+    <script type="text/javascript">
+    window.onload = function() {
+        //This initializes Phaser
+        var WINDOW_WIDTH ='100';//When it's a string, it acts as a percentage
+        var WINDOW_HEIGHT = '100';
+
+        var game = new Phaser.Game(WINDOW_WIDTH, WINDOW_HEIGHT, Phaser.AUTO, '', { preload: preload, create: create,update:GameLoop ,shutdown:shutdown});
+        
+        var player;
+        var bulletArray = []
+        var enemiesArray = []
+        var bulletArray = []
+        var spawnCounter = 0;//A counter to spawn an enemy every few seconds
+        var HUD = {};
+        var lives = 3;
+        var GameOverState;//Defined below
+
+        function preload () {
+            //Load all of our assets
+            game.load.image('player', 'Assets/images/player.png');
+            game.load.image('enemy','Assets/images/enemyShip.png');
+            game.load.image('bullet','Assets/images/laserGreen.png');
+        }
+        function shutdown(){
+            //Clean everything we did
+            player.destroy()
+            HUD.lifeText.destroy()
+            for(var i = 0;i<bulletArray.length;i++){
+                var bullet = bulletArray[i];
+                bullet.destroy()
+            }
+            for(var i = 0;i<enemiesArray.length;i++){
+               var enemy = enemiesArray[i];
+               enemy.destroy()
+           }
+           bulletArray = []
+           enemiesArray = []
+        }
+
+        function createPlayer(){
+            player = game.add.sprite(game.world.centerX, game.world.centerY, 'player');
+            player.anchor.setTo(0.5, 0.5);//This means the center of the sprite is its center, rather than its top left
+
+            //Initialize some values inside the player object
+            player.speed = 5;
+        }
+        function createHUD(){
+            //HUD stands for "Heads Up Display"
+
+            //Create a group
+            var style = { font: "55px Arial", fill: "#ffffff", align: "left" };
+            HUD.lifeText = game.add.text(20, 20, "Lives: 3", style);
+            HUD.lifeText.z = 1000;
+        }
+        function addBullet(x,y,angle){
+            var bullet = game.add.sprite(x,y, 'bullet');
+            bullet.anchor.setTo(0.5,0.5);
+            bullet.rotation = angle- (90 * Math.PI/180); 
+            bullet.cosine = Math.cos(angle)
+            bullet.sine = Math.sin(angle)
+            bullet.speed = 10;
+            bulletArray.push(bullet)
+        }
+        function addEnemy(){
+            //Randomly spawn an enemy somewhere outside the screen
+            var x = game.world._width/2;
+            var y = game.world._height/2;
+            var angle = Math.random() * 2 * Math.PI;//They spawn in a circle outside the screen, at a random point on that circle
+            x += Math.cos(angle) * game.world._width;
+            y += Math.sin(angle) * game.world._height;
+            var enemy = game.add.sprite(x,y, 'enemy');
+            enemy.anchor.setTo(0.5,0.5);
+            enemy.speed = 2;
+            enemiesArray.push(enemy)
+        }
+
+        function create () {
+            createHUD();
+           createPlayer();
+            
+        }
+        function GameLoop(){
+            //Activate sorting
+            game.world.sort('z')
+
+            //Allow player movement with Arrow keys or WASD
+            if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT) || game.input.keyboard.isDown(Phaser.Keyboard.A)){
+                player.x -= player.speed;
+            }
+            if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT) || game.input.keyboard.isDown(Phaser.Keyboard.D)){
+                player.x += player.speed;
+            }
+            if (game.input.keyboard.isDown(Phaser.Keyboard.UP) || game.input.keyboard.isDown(Phaser.Keyboard.W)){
+                player.y -= player.speed;
+            }
+            if (game.input.keyboard.isDown(Phaser.Keyboard.DOWN) || game.input.keyboard.isDown(Phaser.Keyboard.S)){
+                player.y += player.speed;
+            }
+
+            //Make player point to mouse
+            var dx = game.input.mousePointer.x - player.x;
+            var dy = game.input.mousePointer.y - player.y;//Calculate distance from mouse 
+            var angle = Math.atan2(dy,dx)//Calculate angle to mouse
+            //Look at this fancy trignometry! I guess maths is useful after all!
+            player.rotation = angle + (90 * Math.PI/180) ;
+
+            //Shoot on mouse click!
+            if(game.input.activePointer.isDown && !player.fired){
+                addBullet(player.x,player.y,angle);
+                player.fired = true;//This is just to make it on click, instead of keep firing as long as mouse is down
+            }
+            if(!game.input.activePointer.isDown) player.fired = false;
+            ///Update bullets
+            for(var i = 0;i<bulletArray.length;i++){
+                var bullet = bulletArray[i];
+                //Move the bullet by its rotation
+                bullet.x += bullet.cosine * bullet.speed;//We're saving the cosine and sine values, since the angle doesn't change, so we don't have to calculate them every frame for every bullet
+                bullet.y += bullet.sine * bullet.speed; 
+
+                //TODO: We should be removing the bullets when they exit the screen!
+
+                 //Remove the bullet if it collides with an enemy
+                for(var j = 0;j<enemiesArray.length;j++){//For every bullet, loop over every enemy
+                    var enemy = enemiesArray[j];
+                    //WE detect collision simply by checking if the distance between the enemy and the bullet is small enough
+                    var dx = enemy.x - bullet.x; 
+                    var dy = enemy.y - bullet.y;
+                    var distance = Math.sqrt(dx * dx + dy * dy);
+                    if(distance < enemy.width){
+                        //Destroy and remove from array
+                        bullet.destroy();
+                        bulletArray.splice(i,1);
+                        //Destroy the enemy too
+                        enemy.destroy();
+                        enemiesArray.splice(j,1)
+                    }
+                }
+            }
+
+
+            //Spawn an enemy every second
+            spawnCounter ++
+            if(spawnCounter > 60 ){
+                spawnCounter = 0;
+                addEnemy();
+            }
+
+            //Update enemies
+            for(var i = 0;i<enemiesArray.length;i++){
+               var enemy = enemiesArray[i];
+               //Make them seek out and follow the player
+               var dx = player.x - enemy.x;
+               var dy = player.y - enemy.y;
+               var angle = Math.atan2(dy,dx);
+               enemy.rotation = angle - (90 * Math.PI/180) ;
+               enemy.x += Math.cos(angle) * enemy.speed;
+               enemy.y += Math.sin(angle) * enemy.speed;
+
+               //If the enemy hits the player, remove enemy
+               var distance = Math.sqrt(dx * dx + dy * dy);
+               if(distance < player.width){
+                 enemy.destroy();
+                enemiesArray.splice(i,1)
+                lives--;
+               }
+            }
+
+            //Update HUD
+            HUD.lifeText.setText("Lives: " + String(lives))
+
+            if(lives <= 0){
+                game.state.start("GameOver")
+            }
+
+        }
+
+
+
+        //Game over state
+        GameOverState = {
+            create: function(){
+                var style = { font: "75px Arial", fill: "#ffffff", align: "center" };
+                var gameOverText = game.add.text(game.world.centerX, game.world.centerY, "Game Over", style);
+                gameOverText.x -= gameOverText.width/2;
+                gameOverText.y -= gameOverText.height/2;
+                //Restart on mouse click
+                game.input.mouse.mouseUpCallback = function(){
+                    game.state.start('default')
+                    lives = 3;
+                }
+            },
+            shutdown: function(){
+                 game.input.mouse.mouseUpCallback = function(){}
+            }
+        }
+        game.state.add("GameOver",GameOverState)
+    };
+    </script>
+ 
+    </body>
+</html>
