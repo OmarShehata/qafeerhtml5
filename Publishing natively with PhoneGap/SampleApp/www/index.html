@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<!--
+    Copyright (c) 2012-2014 Adobe Systems Incorporated. All rights reserved.
+
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+     KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+-->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="msapplication-tap-highlight" content="no" />
+        <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+        <link rel="stylesheet" type="text/css" href="css/index.css" />
+        <!-- Don't forget to include the Phaser library! -->
+        <script src="js/phaser.min.js"></script>
+        <title>Phaser Example</title>
+    </head>
+    <body>
+        <!-- ==================== YOUR CODE HERE ======================== -->
+        <script type="text/javascript">
+        window.onload = function() {
+            //This initializes Phaser
+            var WINDOW_WIDTH = '100';
+            var WINDOW_HEIGHT = '100';
+            var game = new Phaser.Game(WINDOW_WIDTH, WINDOW_HEIGHT, Phaser.AUTO, '', { preload: preload, create: create,update:GameLoop });
+            
+            var blockArray = [];
+            var pressedDown = false;
+
+            function CreateBlock(x,y){
+                //Create a block
+                var block = game.add.sprite(x,y,'block');
+                //Enable physics on it
+                game.physics.p2.enable(block)
+
+                //block.body.collideWorldBounds = false; //This makes this body ignore the world boundaries
+
+                blockArray.push(block)
+            }
+
+            function preload () {
+                game.load.image('block', 'block.png');
+            }
+            function create () {
+                //Enable p2 physics
+                game.physics.startSystem(Phaser.Physics.P2JS);
+                //Set the gravity
+                game.physics.p2.gravity.y = 1000;
+
+                //Create one block
+                CreateBlock(game.world.centerX,game.world.centerY)
+
+            }
+            function GameLoop(){
+                if(game.input.pointer1.active && !pressedDown){
+                    pressedDown = true; 
+                    CreateBlock(game.input.pointer1.x,game.input.pointer1.y)
+                }
+                if(!game.input.pointer1.active){
+                    pressedDown = false; 
+                }
+            }
+
+        };
+        </script>
+
+        <!-- ==================== END YOUR CODE ======================== -->
+        <script type="text/javascript" src="cordova.js"></script>
+        <script type="text/javascript">
+            app.initialize();
+        </script>
+    </body>
+</html>
